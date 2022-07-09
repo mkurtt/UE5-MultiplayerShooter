@@ -39,20 +39,19 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
-	
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Jump",IE_Pressed,this,&ACharacter::Jump);
-	PlayerInputComponent->BindAction("Equip",IE_Pressed,this,&ThisClass::EquipButtonPressed);
-	
-	PlayerInputComponent->BindAxis("MoveForward",this,&ThisClass::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight",this,&ThisClass::MoveRight);
-	PlayerInputComponent->BindAxis("Turn",this,&ThisClass::Turn);
-	PlayerInputComponent->BindAxis("LookUp",this,&ThisClass::LookUp);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ThisClass::EquipButtonPressed);
+
+	PlayerInputComponent->BindAxis("MoveForward", this, &ThisClass::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ThisClass::MoveRight);
+	PlayerInputComponent->BindAxis("Turn", this, &ThisClass::Turn);
+	PlayerInputComponent->BindAxis("LookUp", this, &ThisClass::LookUp);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -80,6 +79,7 @@ void ABlasterCharacter::MoveForward(float Value)
 	{
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
 		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
+		AddMovementInput(Direction, Value);
 		AddMovementInput(Direction, Value);
 	}
 }
