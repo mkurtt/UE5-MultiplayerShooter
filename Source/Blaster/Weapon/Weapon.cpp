@@ -3,9 +3,11 @@
 
 #include "Weapon.h"
 
+#include "Casing.h"
 #include "Blaster/Character/BlasterCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "Net/UnrealNetwork.h"
 
 AWeapon::AWeapon()
@@ -83,10 +85,9 @@ void AWeapon::SetWeaponState(EWeaponState State)
 	switch (WeaponState)
 	{
 		case EWeaponState::EWS_Initial: break;
-		case EWeaponState::EWS_Equipped:
-			ShowPickupWidget(false);
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		break;
+		case EWeaponState::EWS_Equipped: ShowPickupWidget(false);
+			AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			break;
 		case EWeaponState::EWS_Dropped: break;
 		case EWeaponState::EWS_MAX: break;
 		default: ;
@@ -98,8 +99,7 @@ void AWeapon::OnRep_WeaponState()
 	switch (WeaponState)
 	{
 		case EWeaponState::EWS_Initial: break;
-		case EWeaponState::EWS_Equipped:
-			ShowPickupWidget(false);
+		case EWeaponState::EWS_Equipped: ShowPickupWidget(false);
 			break;
 		case EWeaponState::EWS_Dropped: break;
 		case EWeaponState::EWS_MAX: break;
@@ -112,4 +112,24 @@ void AWeapon::ShowPickupWidget(bool bShowWidget)
 {
 	if (PickupWidget)
 		PickupWidget->SetVisibility(bShowWidget);
+}
+
+void AWeapon::Fire(const FVector& HitTarget)
+{
+	if (FireAnimation)
+	{
+		WeaponMesh->PlayAnimation(FireAnimation, false);
+		if (CasingClass)
+		{
+			const USkeletalMeshSocket* AmmoEjectSocket = GetWeaponMesh()->GetSocketByName(FName("AmmoEject"));
+			if (AmmoEjectSocket)
+			{
+				FTransform AmmoEjectTransform = AmmoEjectSocket->GetSocketTransform(GetWeaponMesh());
+				FActorSpawnParameters SpawnParams;
+
+				if (GetWorld())
+					GetWorld()->SpawnActor<ACasing>(CasingClass, AmmoEjectTransform.GetLocation(), AmmoEjectTransform.GetRotation().Rotator(), SpawnParams);
+			}
+		}
+	}
 }
