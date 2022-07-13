@@ -15,6 +15,7 @@ ACasing::ACasing()
 	CasingMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CasingMesh"));
 	SetRootComponent(CasingMesh);
 	CasingMesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	CasingMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	CasingMesh->SetSimulatePhysics(true);
 	CasingMesh->SetEnableGravity(true);
 	CasingMesh->SetNotifyRigidBodyCollision(true);

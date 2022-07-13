@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "BlasterCharacter.generated.h"
 
+
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
 {
@@ -21,6 +22,10 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	void PlayFireMontage(bool bAiming);
+	void PlayHitReactMontage();
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastHit();
 
 protected:
 	virtual void BeginPlay() override;
@@ -71,6 +76,13 @@ private:
 
 	UPROPERTY(EditAnywhere, Category="Combat")
 	class UAnimMontage* FireWeaponMontage;
+	UPROPERTY(EditAnywhere, Category="Combat")
+	UAnimMontage* HitReactMontage;
+
+	void HideCameraIfCharacterClose();
+
+	UPROPERTY(EditAnywhere)
+	float CameraThreshold =200.f;
 
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
