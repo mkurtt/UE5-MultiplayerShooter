@@ -12,6 +12,7 @@
 #include "DrawDebugHelpers.h"
 #include "Blaster/HUD/BlasterHUD.h"
 #include "Blaster/PlayerController/BlasterPlayerController.h"
+#include "Camera/CameraComponent.h"
 
 #define TRACE_LENGTH 80000.f
 
@@ -38,19 +39,27 @@ void UCombatComponent::BeginPlay()
 	if (Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+
+		if (Character->GetCamera())
+		{
+			DefaultFOV = Character->GetCamera()->FieldOfView;
+			CurrentFOV = DefaultFOV;
+		}
 	}
 }
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	SetHUDCrosshairs(DeltaTime);
 
 	if (Character && Character->IsLocallyControlled())
 	{
 		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
 		HitTarget = HitResult.ImpactPoint;
+
+		SetHUDCrosshairs(DeltaTime);
+		InterpFOV(DeltaTime);
 	}
 }
 
@@ -82,12 +91,12 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 			}
 			//Calculate Crosshair Spread
 			// [0,600] -> [0,1]
-			FVector2D WalkSpeedRange(0,Character->GetCharacterMovement()->MaxWalkSpeed);
-			FVector2D VelocityMultiplierRange(0.f,1.f);
+			FVector2D WalkSpeedRange(0, Character->GetCharacterMovement()->MaxWalkSpeed);
+			FVector2D VelocityMultiplierRange(0.f, 1.f);
 			FVector Velocity = Character->GetVelocity();
 			Velocity.Z = 0.f;
 			CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityMultiplierRange, Velocity.Size());
-			
+
 			if (Character->GetCharacterMovement()->IsFalling())
 			{
 				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
@@ -96,12 +105,30 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 			{
 				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
 			}
-			
+
 
 			HUDPackage.CrosshairSpread = CrosshairVelocityFactor + CrosshairInAirFactor;
-			
+
 			HUD->SetHUDPackage(HUDPackage);
 		}
+	}
+}
+
+void UCombatComponent::InterpFOV(float DeltaTime)
+{
+	if (!EquippedWeapon) return;
+
+	if (bAiming)
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, EquippedWeapon->GetZoomedFOV(), DeltaTime, EquippedWeapon->GetZoomInterpSpeed());
+	}
+	else
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomInterpSpeed);
+	}
+	if (Character && Character->GetCamera())
+	{
+		Character->GetCamera()->SetFieldOfView(CurrentFOV);
 	}
 }
 

@@ -59,7 +59,7 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 
-	
+
 	float AO_Yaw;
 	float InterpAO_Yaw;
 	float AO_Pitch;
@@ -80,4 +80,5 @@ public:
 	AWeapon* GetEquippedWeapon();
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
 	FVector GetHitTarget();
+	FORCEINLINE UCameraComponent* GetCamera() { return Camera; }
 };
