@@ -29,6 +29,7 @@ public:
 	void ShowPickupWidget(bool bShowWidget);
 
 	virtual void Fire(const FVector& HitTarget);
+	void Drop();
 
 	UPROPERTY(EditAnywhere, Category=Crosshairs)
 	class UTexture2D* CrosshairsCenter;

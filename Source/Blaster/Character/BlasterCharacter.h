@@ -5,10 +5,13 @@
 #include "CoreMinimal.h"
 #include "Blaster/BlasterTypes/TurningInPlace.h"
 #include "Blaster/Interfaces/InteractWithCrosshairsInterface.h"
+#include "Components/TimelineComponent.h"
 #include "GameFramework/Character.h"
 #include "BlasterCharacter.generated.h"
 
 
+class ABlasterPlayerState;
+class USoundCue;
 UCLASS()
 class BLASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshairsInterface
 {
@@ -23,11 +26,14 @@ public:
 
 	void PlayFireMontage(bool bAiming);
 	void PlayHitReactMontage();
-
-	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastHit();
+	void PlayElimMontage();
 
 	virtual void OnRep_ReplicatedMovement() override;
+	void UpdateHUDHealth();
+	void Elim();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastElim();
+	virtual void Destroyed() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -49,6 +55,10 @@ protected:
 	void SimProxiesTurn();
 	virtual void Jump() override;
 
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
+
+	void PollInit();
 private:
 	UPROPERTY(VisibleAnywhere, Category="Camera")
 	class USpringArmComponent* CameraBoom;
@@ -83,6 +93,8 @@ private:
 	class UAnimMontage* FireWeaponMontage;
 	UPROPERTY(EditAnywhere, Category="Combat")
 	UAnimMontage* HitReactMontage;
+	UPROPERTY(EditAnywhere, Category="Combat")
+	UAnimMontage* ElimMontage;
 
 	void HideCameraIfCharacterClose();
 
@@ -95,9 +107,58 @@ private:
 	FRotator ProxyRotationLastFrame;
 	FRotator ProxyRotation;
 	float TimeSinceLastMovementReplication;
-	
+
 	float CalculateSpeed();
 
+	//PlayerHealth
+	UPROPERTY(EditAnywhere, Category= "Player Stats")
+	float MaxHealth = 100.f;
+
+	UPROPERTY(ReplicatedUsing=OnRep_Health, Category= "Player Stats", VisibleAnywhere)
+	float Health = 100.f;;
+
+	UFUNCTION()
+	void OnRep_Health();
+
+	UPROPERTY()
+	class ABlasterPlayerController* BlasterPlayerController;
+
+	bool bElimmed = false;
+
+	FTimerHandle ElimTimer;
+
+	UPROPERTY(EditDefaultsOnly)
+	float RespawnTime = 3;
+	void ElimTimerFinished();
+
+	//Dissolve Effect
+	UPROPERTY(VisibleAnywhere)
+	UTimelineComponent* DissolveTimeline;
+	FOnTimelineFloat DissolveTrack;
+
+	UPROPERTY(EditAnywhere)
+	UCurveFloat* DissolveCurve;
+
+	UFUNCTION()
+	void UpdateDissolveMaterial(float DissolveValue);
+	void StartDissolve();
+
+	UPROPERTY(VisibleAnywhere, Category = Elim)
+	UMaterialInstanceDynamic* DynamicDissolveMaterialInstance;
+
+	UPROPERTY(EditAnywhere, Category = Elim)
+	UMaterialInstance* DissolveMaterialInstance;
+
+	//ElimBot
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* ElimBotEffect;
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* ElimBotComponent;
+	UPROPERTY(EditAnywhere)
+	USoundBase* ElimBotSound;
+
+	UPROPERTY()
+	ABlasterPlayerState* BlasterPlayerState;
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
@@ -109,4 +170,7 @@ public:
 	FVector GetHitTarget();
 	FORCEINLINE UCameraComponent* GetCamera() { return Camera; }
 	FORCEINLINE bool ShouldRotateRootBone() const { return bRotateRootBone; }
+	FORCEINLINE bool IsElimmed() const { return bElimmed; }
+	FORCEINLINE float GetHealth() const { return Health; }
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 };
