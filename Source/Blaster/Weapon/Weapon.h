@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "WeaponTypes.h"
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
@@ -25,11 +26,14 @@ public:
 	AWeapon();
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	void SetHUDAmmo();
+	
+	virtual void OnRep_Owner() override;
 	void ShowPickupWidget(bool bShowWidget);
 
 	virtual void Fire(const FVector& HitTarget);
 	void Drop();
+	void AddAmmo(int32 AmmoToAdd);
 
 	UPROPERTY(EditAnywhere, Category=Crosshairs)
 	class UTexture2D* CrosshairsCenter;
@@ -45,7 +49,8 @@ public:
 	// Aiming as FOV
 	UPROPERTY(EditAnywhere)
 	float ZoomedFOV = 30.f;
-	UPROPERTY(EditAnywhere);
+	UPROPERTY(EditAnywhere)
+	;
 	float ZoomInterpSpeed = 20.f;
 
 	// AutomaticFire
@@ -53,8 +58,10 @@ public:
 	float FireDelay = .15;
 	UPROPERTY(EditAnywhere, Category=Combat)
 	bool bAutomatic = true;
-	
 
+	UPROPERTY(EditAnywhere)
+	class USoundBase* EquipSound;
+	
 protected:
 	virtual void BeginPlay() override;
 	UFUNCTION()
@@ -87,17 +94,38 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category="Weapon Properties")
 	class UWidgetComponent* PickupWidget;
-	
+
 	UPROPERTY(EditAnywhere, Category="Weapon Properties")
 	class UAnimationAsset* FireAnimation;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACasing> CasingClass;
+
+	UPROPERTY(EditAnywhere, ReplicatedUsing=OnRep_Ammo)
+	int32 Ammo;
+	UFUNCTION()
+	void OnRep_Ammo();
+
+	void SpendRound();
 	
+	UPROPERTY(EditAnywhere)
+	int32 MagCapacity;
+
+	UPROPERTY()
+	class ABlasterCharacter* BlasterOwnerCharacter;
+	UPROPERTY()
+	class ABlasterPlayerController* BlasterOwnerController;
+
+	UPROPERTY(EditAnywhere)
+	EWeaponType WeaponType;
 public:
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
+	FORCEINLINE bool IsEmpty() const { return Ammo <= 0; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
+	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 };

@@ -74,18 +74,10 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			FTransform MuzzleTipTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("MuzzleFlash"), RTS_World);
 			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - BlasterCharacter->GetHitTarget()));
 			RightHandRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, DeltaSeconds, 1.f);
-			
-			//FVector MuzzleX(FRotationMatrix(MuzzleTipTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
-			// DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), MuzzleTipTransform.GetLocation() + MuzzleX * 10000, FColor::Red);
-			// DrawDebugLine(GetWorld(), MuzzleTipTransform.GetLocation(), BlasterCharacter->GetHitTarget(), FColor::Orange);
 		}
-
 	}
 
-
-	// if (!BlasterCharacter->HasAuthority() && !BlasterCharacter->IsLocallyControlled())
-	// {
-	// 	UE_LOG(LogTemp, Display, TEXT("AimRotation Yaw %f: "), AimRotation.Yaw);
-	// 	UE_LOG(LogTemp, Display, TEXT("MovementRotation Yaw %f: "), MovementRotation.Yaw);
-	// }
+	bUseFabrik = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading;
+	bUseAimOffsets = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading && !BlasterCharacter->GetDisableGameplay();
+	bTransformRightHand = BlasterCharacter->GetCombatState() != ECombatState::ECS_Reloading && !BlasterCharacter->GetDisableGameplay();
 }
