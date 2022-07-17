@@ -13,7 +13,7 @@
 #include "Camera/CameraComponent.h"
 #include "TimerManager.h"
 
-#define TRACE_LENGTH 80000.f
+#define TRACE_LENGTH 120000.f
 
 UCombatComponent::UCombatComponent()
 {
@@ -433,4 +433,5 @@ void UCombatComponent::OnRep_CarriedAmmo()
 void UCombatComponent::InitializeCarriedAmmo()
 {
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle, StartingARAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_RocketLauncher, StartingRocketAmmo);
 }

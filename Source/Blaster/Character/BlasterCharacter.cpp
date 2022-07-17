@@ -22,6 +22,7 @@
 ABlasterCharacter::ABlasterCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh());
@@ -113,6 +114,7 @@ void ABlasterCharacter::MulticastElim_Implementation()
 
 	//Disable Character Movement
 	bDisableGameplay = true;
+	GetCharacterMovement()->DisableMovement();
 	if (Combat)
 	{
 		Combat->FireButtonPressed(false);
@@ -152,7 +154,7 @@ void ABlasterCharacter::Destroyed()
 
 	ABlasterGameMode* GameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
 	bool bMatchNotInProgress = GameMode && GameMode->GetMatchState() != MatchState::InProgress;
-	
+
 	if (Combat && Combat->EquippedWeapon && bMatchNotInProgress)
 	{
 		Combat->EquippedWeapon->Destroy();
@@ -271,6 +273,7 @@ void ABlasterCharacter::PlayReloadMonstage()
 		{
 			case EWeaponType::EWT_AssaultRifle: SectionName = FName("Rifle");
 				break;
+			case EWeaponType::EWT_RocketLauncher: SectionName = FName("Rifle");
 			case EWeaponType::EWT_MAX: break;
 			default: ;
 		}
