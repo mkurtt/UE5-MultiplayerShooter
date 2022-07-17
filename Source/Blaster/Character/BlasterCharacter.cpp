@@ -22,7 +22,7 @@
 ABlasterCharacter::ABlasterCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	
+
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh());
@@ -274,6 +274,9 @@ void ABlasterCharacter::PlayReloadMonstage()
 			case EWeaponType::EWT_AssaultRifle: SectionName = FName("Rifle");
 				break;
 			case EWeaponType::EWT_RocketLauncher: SectionName = FName("Rifle");
+				break;
+			case EWeaponType::EWT_Pistol: SectionName = FName("Rifle");
+				break;
 			case EWeaponType::EWT_MAX: break;
 			default: ;
 		}
