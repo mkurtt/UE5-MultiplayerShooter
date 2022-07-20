@@ -9,6 +9,7 @@
 #include "Components/AudioComponent.h"
 #include "NiagaraComponent.h"
 #include "RocketMovementComponent.h"
+#include "../../../Plugins/Developer/RiderLink/Source/RD/src/rd_core_cpp/src/main/reactive/base/viewable_collections.h"
 
 AProjectileRocket::AProjectileRocket()
 {
@@ -123,4 +124,5 @@ void AProjectileRocket::DestroyTimerFinished()
 
 void AProjectileRocket::Destroyed()
 {
+	
 }

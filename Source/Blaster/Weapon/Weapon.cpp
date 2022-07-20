@@ -132,12 +132,21 @@ void AWeapon::SetWeaponState(EWeaponState State)
 			WeaponMesh->SetSimulatePhysics(false);
 			WeaponMesh->SetEnableGravity(false);
 			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			if (WeaponType == EWeaponType::EWT_SMG)
+			{
+				WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				WeaponMesh->SetEnableGravity(true);
+				WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+			}
 			break;
 		case EWeaponState::EWS_Dropped: if (HasAuthority())
 				AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			WeaponMesh->SetSimulatePhysics(true);
 			WeaponMesh->SetEnableGravity(true);
 			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+			WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+			WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 			break;
 		case EWeaponState::EWS_MAX: break;
 		default: ;
@@ -153,10 +162,19 @@ void AWeapon::OnRep_WeaponState()
 			WeaponMesh->SetSimulatePhysics(false);
 			WeaponMesh->SetEnableGravity(false);
 			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			if (WeaponType == EWeaponType::EWT_SMG)
+			{
+				WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				WeaponMesh->SetEnableGravity(true);
+				WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+			}
 			break;
 		case EWeaponState::EWS_Dropped: WeaponMesh->SetSimulatePhysics(true);
 			WeaponMesh->SetEnableGravity(true);
 			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+			WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+			WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 			break;
 		case EWeaponState::EWS_MAX: break;
 		default: ;
@@ -203,6 +221,6 @@ void AWeapon::Drop()
 
 void AWeapon::AddAmmo(int32 AmmoToAdd)
 {
-	Ammo = FMath::Clamp(Ammo + AmmoToAdd , 0 , MagCapacity);
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
 	SetHUDAmmo();
 }

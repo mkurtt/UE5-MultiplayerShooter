@@ -132,6 +132,11 @@ void ABlasterCharacter::MulticastElim_Implementation()
 	{
 		UGameplayStatics::SpawnSoundAtLocation(this, ElimBotSound, GetActorLocation());
 	}
+
+	if (IsLocallyControlled() && Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_Sniper)
+	{
+		ShowSniperScopeWidget(false);
+	}
 }
 
 void ABlasterCharacter::ElimTimerFinished()
@@ -276,6 +281,10 @@ void ABlasterCharacter::PlayReloadMonstage()
 			case EWeaponType::EWT_RocketLauncher: SectionName = FName("Rifle");
 				break;
 			case EWeaponType::EWT_Pistol: SectionName = FName("Rifle");
+				break;
+			case EWeaponType::EWT_SMG: SectionName = FName("Rifle");
+				break;
+			case EWeaponType::EWT_Shotgun: SectionName = FName("Rifle");
 				break;
 			case EWeaponType::EWT_MAX: break;
 			default: ;
