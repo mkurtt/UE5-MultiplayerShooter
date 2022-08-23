@@ -22,11 +22,33 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	void AttachActorToRightHand(AActor* ActorToAttach);
+	void AttachActorToLeftHand(AActor* ActorToAttach);
+	void AttachActorToBackpack(AActor* ActorToAttach);
+	void UpdateCarriedAmmo();
+	void PlayEquipSound(AWeapon* Weapon);
+	void ReloadEmptyWeapon();
 	void EquipWeapon(AWeapon* WeaponToEquip);
+	void SwapWeapons();
 	void Reload();
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
 	void FireButtonPressed(bool bPressed);
+
+	UFUNCTION(BlueprintCallable)
+	void ShotgunShellReload();
+
+	void JumpToShotgunEnd();
+
+	UFUNCTION(BlueprintCallable)
+	void ThrowGrenadeFinished();
+	
+	UFUNCTION(BlueprintCallable)
+	void LaunchGrenade();
+	UFUNCTION(Server,Reliable)
+	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
+
+	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
 protected:
 	virtual void BeginPlay() override;
 	void SetAiming(bool bIsAiming);
@@ -36,6 +58,8 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
+	UFUNCTION()
+	void OnRep_SecondaryWeapon();
 	void Fire();
 
 
@@ -46,14 +70,21 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerReload();
-
 	void HandleReload();
-
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
-
 	void SetHUDCrosshairs(float DeltaTime);
-
 	int32 AmountToReload();
+	void ThrowGrenade();
+	UFUNCTION(Server, Reliable)
+	void ServerThrowGrenade();
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AProjectile> GrenadeClass;
+	void DropEquippedWeapon();
+	void ShowAttachGrenade(bool bShow);
+
+	void EquipPrimaryWeapon(AWeapon* WeaponToEquip);
+	void EquipSecondaryWeapon(AWeapon* WeaponToEquip);
+
 private:
 	UPROPERTY()
 	class ABlasterCharacter* Character;
@@ -64,6 +95,8 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
+	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeapon)
+	AWeapon* SecondaryWeapon;
 
 	UPROPERTY(Replicated)
 	bool bAiming;
@@ -121,17 +154,32 @@ private:
 	TMap<EWeaponType, int32> CarriedAmmoMap;
 
 	UPROPERTY(EditAnywhere)
-	int32 StartingArAmmo = 30;
+	int32 MaxCarriedAmmo = 240;
+
 	UPROPERTY(EditAnywhere)
-	int32 StartingRocketAmmo = 0;
+	int32 StartingArAmmo = 90;
 	UPROPERTY(EditAnywhere)
-	int32 StartingPistolAmmo = 0;
+	int32 StartingRocketAmmo = 8;
 	UPROPERTY(EditAnywhere)
-	int32 StartingSMGAmmo = 0;
+	int32 StartingPistolAmmo = 40;
 	UPROPERTY(EditAnywhere)
-	int32 StartingShotgunAmmo = 0;
+	int32 StartingSMGAmmo = 45;
 	UPROPERTY(EditAnywhere)
-	int32 StartingSniperAmmo = 0;
+	int32 StartingShotgunAmmo = 12;
+	UPROPERTY(EditAnywhere)
+	int32 StartingSniperAmmo = 8;
+	UPROPERTY(EditAnywhere)
+	int32 StartingGrenadeLauncherAmmo = 12;;
+
+
+	UPROPERTY(ReplicatedUsing = OnRep_HandGrenades);
+	int32 HandGrenades = 4;
+
+	UFUNCTION()
+	void OnRep_HandGrenades();
+
+	UPROPERTY(EditAnywhere)
+	int32 MaxHandGrenades = 4;
 
 	void InitializeCarriedAmmo();
 
@@ -140,7 +188,12 @@ private:
 
 	UFUNCTION()
 	void OnRep_CombatState();
-	
+
 	void UpdateAmmoValues();
+	void UpdateShotgunAmmoValues();
+	void UpdateHUDGrenades();
 public:
+
+	FORCEINLINE int32 GetGrenades() const {return HandGrenades;}
+	bool ShouldSwapWeapons();
 };

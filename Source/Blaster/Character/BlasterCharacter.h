@@ -29,9 +29,12 @@ public:
 	void PlayReloadMonstage();
 	void PlayHitReactMontage();
 	void PlayElimMontage();
+	void PlayThrowGrenadeMontage();
 
 	virtual void OnRep_ReplicatedMovement() override;
 	void UpdateHUDHealth();
+	void UpdateHUDShield();
+	void UpdateHUDAmmo();
 	void Elim();
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastElim();
@@ -42,6 +45,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScope);
+
+	void SpawnDefaultWeapon();
 
 protected:
 	virtual void BeginPlay() override;
@@ -58,6 +63,7 @@ protected:
 	void FireButtonPressed();
 	void FireButtonReleased();
 	void ReloadButtonPressed();
+	void GrenadeButtonPressed();
 
 	void RotateInPlace(float DeltaTime);
 	void AimOffset(float DeltaTime);
@@ -69,6 +75,7 @@ protected:
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 
 	void PollInit();
+
 private:
 	UPROPERTY(VisibleAnywhere, Category="Camera")
 	class USpringArmComponent* CameraBoom;
@@ -84,12 +91,13 @@ private:
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
-	class UCombatComponent* Combat;
+	class UCombatComponent* CombatComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	class UBuffComponent* Buff;
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
-
-
+	
 	float AO_Yaw;
 	float InterpAO_Yaw;
 	float AO_Pitch;
@@ -107,6 +115,8 @@ private:
 	UAnimMontage* HitReactMontage;
 	UPROPERTY(EditAnywhere, Category="Combat")
 	UAnimMontage* ElimMontage;
+	UPROPERTY(EditAnywhere, Category="Combat")
+	UAnimMontage* ThrowGrenadeMontage;
 
 	void HideCameraIfCharacterClose();
 
@@ -130,7 +140,18 @@ private:
 	float Health = 100.f;;
 
 	UFUNCTION()
-	void OnRep_Health();
+	void OnRep_Health(float LastHealth);
+
+	//playerShield
+	UPROPERTY(EditAnywhere, Category= "Player Stats")
+	float MaxShield = 100.f;
+
+	UPROPERTY(ReplicatedUsing=OnRep_Shield, Category= "Player Stats", EditAnywhere)
+	float Shield = 0.f;;
+
+	UFUNCTION()
+	void OnRep_Shield(float LastShield);
+
 
 	UPROPERTY()
 	class ABlasterPlayerController* BlasterPlayerController;
@@ -172,6 +193,16 @@ private:
 	UPROPERTY()
 	ABlasterPlayerState* BlasterPlayerState;
 
+	//Hand Grenade
+	
+	UPROPERTY(VisibleAnywhere)
+	class UStaticMeshComponent* AttachedGrenade;
+
+	//default weapon
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AWeapon> DefaultWeaponClass;
+
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
@@ -186,7 +217,14 @@ public:
 	FORCEINLINE bool IsElimmed() const { return bElimmed; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE float GetHealth() const { return Health; }
+	void SetHealth(float Value);
+	FORCEINLINE float GetShield() const { return Shield; }
+	void SetShield(float Value);
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	FORCEINLINE float GetMaxShield() const { return MaxShield; }
 	ECombatState GetCombatState() const;
-	FORCEINLINE UCombatComponent* GetCombat() { return Combat; }
+	FORCEINLINE UCombatComponent* GetCombat() { return CombatComp; }
+	FORCEINLINE UBuffComponent* GetBuff() { return Buff; }
+	FORCEINLINE UAnimMontage* GetReloadMontage() { return ReloadMontage; }
+	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
 };
