@@ -35,4 +35,8 @@ public:
 	class UTextBlock* MatchCountdownText;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* GrenadesText;
+	UPROPERTY(meta = (BindWidget))
+	class UImage* HighPingIcon;
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	class UWidgetAnimation* HighPingAnimation;
 };

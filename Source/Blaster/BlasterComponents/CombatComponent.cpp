@@ -114,13 +114,47 @@ void UCombatComponent::Fire()
 	if (!CanFire()) return;
 	bCanFire = false;
 
-	ServerFire(HitTarget);
-
 	if (EquippedWeapon)
+	{
 		CrosshairShootingFactor = .75f;
 
+		switch (EquippedWeapon->FireType)
+		{
+			case EFireType::EFT_HitScan:
+				FireHitScan();
+				break;
+			case EFireType::EFT_Projectile:
+				FireProjectile();
+				break;
+			case EFireType::EFT_Shotgun:
+				FireShotgun();
+				break;
+			case EFireType::EFT_MAX: break;
+			default: ;
+		}
+	}
 
 	StartFireTimer();
+}
+
+void UCombatComponent::FireProjectile()
+{
+	LocalFire(HitTarget);
+	ServerFire(HitTarget);
+}
+
+void UCombatComponent::FireHitScan()
+{
+	if (EquippedWeapon)
+	{
+		HitTarget = EquippedWeapon->bUseScatter ? EquippedWeapon->TraceEndWithScatter(HitTarget) : HitTarget;
+		LocalFire(HitTarget);
+		ServerFire(HitTarget);
+	}
+}
+
+void UCombatComponent::FireShotgun()
+{
 }
 
 void UCombatComponent::StartFireTimer()
@@ -145,7 +179,7 @@ void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& Trac
 	MulticastFire(TraceHitTargets);
 }
 
-void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTargets)
+void UCombatComponent::LocalFire(const FVector_NetQuantize& TraceHitTargets)
 {
 	if (!EquippedWeapon) return;
 
@@ -161,6 +195,12 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 		Character->PlayFireMontage(bAiming);
 		EquippedWeapon->Fire(TraceHitTargets);
 	}
+}
+
+void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTargets)
+{
+	if (Character && Character->IsLocallyControlled() && !Character->HasAuthority()) return;
+	LocalFire(TraceHitTargets);
 }
 
 void UCombatComponent::AttachActorToRightHand(AActor* ActorToAttach)
@@ -247,6 +287,8 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 
 void UCombatComponent::SwapWeapons()
 {
+	if (CombatState != ECombatState::ECS_UnOccupied) return;
+
 	AWeapon* TempWeapon = EquippedWeapon;
 	EquippedWeapon = SecondaryWeapon;
 	SecondaryWeapon = TempWeapon;
@@ -264,7 +306,7 @@ void UCombatComponent::SwapWeapons()
 void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
 {
 	if (!WeaponToEquip) return;
-	
+
 	DropEquippedWeapon();
 
 	EquippedWeapon = WeaponToEquip;
@@ -283,7 +325,7 @@ void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
 void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
 {
 	if (!WeaponToEquip) return;
-	
+
 	SecondaryWeapon = WeaponToEquip;
 	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 	AttachActorToBackpack(WeaponToEquip);

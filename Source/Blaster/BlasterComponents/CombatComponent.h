@@ -61,6 +61,9 @@ protected:
 	UFUNCTION()
 	void OnRep_SecondaryWeapon();
 	void Fire();
+	void FireProjectile();
+	void FireHitScan();
+	void FireShotgun();
 
 
 	UFUNCTION(Server, Reliable)
@@ -141,6 +144,7 @@ private:
 
 	void StartFireTimer();
 	void FireTimerFinished();
+	void LocalFire(const FVector_NetQuantize& TraceHitTargets);
 
 	bool CanFire();
 
