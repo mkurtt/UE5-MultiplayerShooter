@@ -24,7 +24,7 @@ enum class EFireType : uint8
 	EFT_HitScan UMETA(DisplayName = "HitScanWeapon"),
 	EFT_Projectile UMETA(DisplayName = "ProjectileWeapon"),
 	EFT_Shotgun UMETA(DisplayName = "ShotgunWeapon"),
-	
+
 	EFT_MAX UMETA(DisplayName = "MAX"),
 };
 
@@ -38,7 +38,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void SetHUDAmmo();
-	
+
 	virtual void OnRep_Owner() override;
 	void ShowPickupWidget(bool bShowWidget);
 
@@ -80,7 +80,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	EFireType FireType;
-	
+
 	//trace end with scatter
 	UPROPERTY(EditAnywhere, Category="Weapon Scatter")
 	float DistanceToSphere = 800.f;
@@ -89,14 +89,14 @@ public:
 	UPROPERTY(EditAnywhere, Category="Weapon Scatter")
 	bool bUseScatter = false;
 	FVector TraceEndWithScatter(const FVector& HitTarget);
-	
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnWeaponStateSet();
 	virtual void OnEquipped();
 	virtual void OnDropped();
 	virtual void OnEquippedSecondary();
-	
+
 	UFUNCTION()
 	virtual void OnSphereOverlap(
 		UPrimitiveComponent* PrimitiveComponent,
@@ -112,7 +112,16 @@ protected:
 		UPrimitiveComponent* OtherComp,
 		int OtherBodyIndex);
 
+	UPROPERTY(EditAnywhere)
+	float Damage = 20.f;
 
+	UPROPERTY(EditAnywhere)
+	bool bUseServerSideRewind = false;
+	
+	UPROPERTY()
+	class ABlasterCharacter* BlasterOwnerCharacter;
+	UPROPERTY()
+	class ABlasterPlayerController* BlasterOwnerController;
 private:
 	UPROPERTY(VisibleAnywhere, Category="Weapon Properties")
 	USkeletalMeshComponent* WeaponMesh;
@@ -134,20 +143,23 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACasing> CasingClass;
 
-	UPROPERTY(EditAnywhere, ReplicatedUsing=OnRep_Ammo)
+	UPROPERTY(EditAnywhere)
 	int32 Ammo;
-	UFUNCTION()
-	void OnRep_Ammo();
+
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateAmmo(int32 ServerAmmo);
+
+	UFUNCTION(Client, Reliable)
+	void ClientAddAmmo(int32 AmmoToAdd);
 
 	void SpendRound();
-	
+
+	//num of unprocessed server requests for ammo
+	//inc in spendround, dec in clientupdateammo
+	int32 Sequence = 0;
+
 	UPROPERTY(EditAnywhere)
 	int32 MagCapacity;
-
-	UPROPERTY()
-	class ABlasterCharacter* BlasterOwnerCharacter;
-	UPROPERTY()
-	class ABlasterPlayerController* BlasterOwnerController;
 
 	UPROPERTY(EditAnywhere)
 	EWeaponType WeaponType;
@@ -157,6 +169,7 @@ public:
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
+	FORCEINLINE float GetDamage() const { return Damage; }
 	FORCEINLINE bool IsEmpty() const { return Ammo <= 0; }
 	FORCEINLINE bool IsFull() const { return Ammo == MagCapacity; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }

@@ -21,9 +21,6 @@ public:
 	virtual void Fire(const FVector& HitTarget) override;
 
 	UPROPERTY(EditAnywhere)
-	float Damage = 20.f;
-
-	UPROPERTY(EditAnywhere)
 	class UParticleSystem* ImpactParticles;
 	UPROPERTY(EditAnywhere)
 	class UParticleSystem* BeamParticles;

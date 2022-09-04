@@ -67,9 +67,9 @@ void ABlasterPlayerController::CheckPing(float DeltaTime)
 		}
 		HighPingRunningTime -= CheckPingFrequency;
 		bool bHighPingAnimPlaying = BlasterHUD &&
-									BlasterHUD->CharacterOverlay &&
-									BlasterHUD->CharacterOverlay->HighPingAnimation &&
-									BlasterHUD->CharacterOverlay->IsAnimationPlaying(BlasterHUD->CharacterOverlay->HighPingAnimation);
+		                            BlasterHUD->CharacterOverlay &&
+		                            BlasterHUD->CharacterOverlay->HighPingAnimation &&
+		                            BlasterHUD->CharacterOverlay->IsAnimationPlaying(BlasterHUD->CharacterOverlay->HighPingAnimation);
 		if (bHighPingAnimPlaying)
 		{
 			HighPingAnimationRunningTime += DeltaTime;
@@ -210,8 +210,9 @@ void ABlasterPlayerController::ServerRequestServerTime_Implementation(float Time
 
 void ABlasterPlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerReceivedClientRequest)
 {
-	float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
-	float CurrentServerTime = TimeServerReceivedClientRequest + (.5f * RoundTripTime);
+	RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+	SingleTripTime = RoundTripTime / 2;
+	float CurrentServerTime = TimeServerReceivedClientRequest + SingleTripTime;
 	ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
 }
 
